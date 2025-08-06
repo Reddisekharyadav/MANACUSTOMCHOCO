@@ -34,7 +34,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Create upload directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    const uploadDir = process.env.NODE_ENV === 'production' 
+      ? '/tmp/uploads' 
+      : path.join(process.cwd(), 'public', 'uploads');
+    
     if (!existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true });
     }
@@ -50,7 +53,11 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
     await writeFile(filePath, buffer);
 
-    const imageUrl = `/uploads/${filename}`;
+    // For production, you might want to use a cloud storage service like AWS S3, Cloudinary, etc.
+    // For now, we'll return a relative path that works for both environments
+    const imageUrl = process.env.NODE_ENV === 'production'
+      ? `/api/uploads/${filename}` // Will need additional API route for serving files
+      : `/uploads/${filename}`;
 
     return NextResponse.json({
       success: true,
