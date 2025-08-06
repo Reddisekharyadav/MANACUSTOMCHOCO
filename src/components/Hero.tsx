@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { Sparkles, Clock, Star, Mail, Phone, ArrowRight } from 'lucide-react';
-import Image from 'next/image';
 
 export default function Hero() {
   const scrollToGallery = () => {
@@ -130,18 +129,16 @@ export default function Hero() {
           className="mb-8"
         >
           <motion.div 
-            className="relative mx-auto w-36 h-36 md:w-44 md:h-44 mb-6"
+            className="relative mx-auto w-36 h-36 md:w-44 md:h-44 mb-6 flex items-center justify-center"
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
-            <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl">
-              <Image
-                src="/uploads/logo.jpg"
-                alt="ManaCustom Choco Logo"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 144px, 176px"
-              />
+            <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 flex items-center justify-center">
+              <div className="text-white font-bold text-2xl md:text-3xl text-center">
+                <div>MANA</div>
+                <div className="text-lg md:text-xl">🍫</div>
+                <div className="text-sm md:text-base">CHOCO</div>
+              </div>
               <motion.div 
                 className="absolute inset-0 bg-gradient-to-br from-amber-400/20 via-orange-500/20 to-red-500/20 rounded-full"
                 animate={{
