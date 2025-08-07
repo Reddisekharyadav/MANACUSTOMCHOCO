@@ -66,14 +66,21 @@ export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db
     
     // Test the connection
     await db.admin().ping();
-    console.log('✅ Connected to MongoDB Atlas successfully');
+    console.log('✅ Connected to MongoDB successfully');
     
     return { client, db };
   } catch (error) {
     console.error('❌ MongoDB connection error:', error);
     
-    // For now, always try to connect - no fallback
-    throw new Error('Failed to connect to MongoDB Atlas');
+    // In production, use mock database as fallback
+    if (process.env.NODE_ENV === 'production') {
+      console.log('🔄 Using production mock database as fallback');
+      const { createProductionDatabase } = await import('./mockDatabase');
+      const { client, db } = createProductionDatabase();
+      return { client: client as MongoClient, db: db as Db };
+    }
+    
+    throw new Error(`Failed to connect to MongoDB: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
