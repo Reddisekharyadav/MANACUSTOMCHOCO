@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔐 Processing admin login...');
+    
     const { username, password } = await request.json();
 
     if (!username || !password) {
@@ -20,6 +22,7 @@ export async function POST(request: NextRequest) {
     
     // If no admin exists, create default admin
     if (!admin && username === process.env.ADMIN_USERNAME) {
+      console.log('🆕 Creating default admin user...');
       const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', 12);
       await db.collection('admins').insertOne({
         username: process.env.ADMIN_USERNAME,
@@ -27,6 +30,7 @@ export async function POST(request: NextRequest) {
         createdAt: new Date()
       });
       admin = await db.collection('admins').findOne({ username });
+      console.log('✅ Default admin created');
     }
 
     if (!admin) {

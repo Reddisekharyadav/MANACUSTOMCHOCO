@@ -5,6 +5,8 @@ import { ObjectId } from 'mongodb';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔄 Fetching wrappers from MongoDB Atlas...');
+    
     const { searchParams } = new URL(request.url);
     const includeScheduled = searchParams.get('includeScheduled') === 'true';
 
@@ -30,11 +32,16 @@ export async function GET(request: NextRequest) {
       .sort({ createdAt: -1 })
       .toArray();
 
+    console.log(`✅ Found ${wrappers.length} wrappers`);
+
     // Add late night pricing if applicable
     const isLateNight = isLateNightHours();
     const wrappersWithPricing = wrappers.map(wrapper => ({
       ...wrapper,
       _id: wrapper._id.toString(),
+      likes: wrapper.likes || 0,
+      likedBy: wrapper.likedBy || [],
+      isLateNightSpecial: wrapper.isLateNightSpecial || false,
       currentPrice: isLateNight && wrapper.lateNightPrice ? wrapper.lateNightPrice : wrapper.price,
       isLateNightActive: isLateNight && wrapper.isLateNightSpecial
     }));
@@ -46,9 +53,13 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Get wrappers error:', error);
+    console.error('❌ Get wrappers error:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to fetch wrappers' },
+      { 
+        success: false, 
+        message: 'Failed to fetch wrappers',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
@@ -73,6 +84,8 @@ export async function POST(request: NextRequest) {
     }
 
     const { db } = await connectToDatabase();
+    
+    console.log('🔄 Creating new wrapper...');
     
     // Generate auto-increment model number
     const existingWrappers = await db
@@ -153,7 +166,7 @@ export async function PUT(request: NextRequest) {
     };
 
     const result = await db.collection('wrappers').updateOne(
-      { _id: new ObjectId(_id) },
+      { _id: ObjectId.createFromHexString(_id) },
       { $set: updateData }
     );
 
@@ -193,7 +206,7 @@ export async function DELETE(request: NextRequest) {
     const { db } = await connectToDatabase();
     
     const result = await db.collection('wrappers').deleteOne({
-      _id: new ObjectId(id)
+      _id: ObjectId.createFromHexString(id)
     });
 
     if (result.deletedCount === 0) {

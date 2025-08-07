@@ -1,38 +1,45 @@
-// Simple API endpoint to seed data
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
 
-export async function POST() {
+export async function GET() {
   try {
-    const { db } = await connectToDatabase();
+    console.log('🌱 Starting database seeding...');
     
-    // Create admin user
-    const adminExists = await db.collection('admins').findOne({ username: 'admin' });
-    if (!adminExists) {
-      const hashedPassword = await bcrypt.hash('ManaChoco2025!', 10);
+    const { db } = await connectToDatabase();
+
+    // Check if admin already exists
+    const existingAdmin = await db.collection('admins').findOne({ username: 'admin' });
+    
+    if (!existingAdmin) {
+      // Create admin user
+      const hashedPassword = await bcrypt.hash('ManaChoco2025!', 12);
       await db.collection('admins').insertOne({
         username: 'admin',
         password: hashedPassword,
         createdAt: new Date()
       });
+      console.log('✅ Admin user created');
+    } else {
+      console.log('ℹ️ Admin user already exists');
     }
+
+    // Check if wrappers already exist
+    const existingWrappers = await db.collection('wrappers').countDocuments();
     
-    // Add sample wrappers
-    const wrappersExist = await db.collection('wrappers').countDocuments();
-    if (wrappersExist === 0) {
+    if (existingWrappers === 0) {
+      // Add sample wrappers
       const sampleWrappers = [
         {
           modelNumber: 'MC001',
           name: 'Elegant Rose Garden',
-          description: 'Beautiful rose-themed wrapper perfect for romantic occasions',
+          description: 'Beautiful rose-themed wrapper perfect for romantic occasions and special celebrations',
           price: 299,
-          imageUrl: '/uploads/model-mc001.jpg',
-          likes: 0,
-          likedBy: [],
           isLateNightSpecial: true,
           lateNightPrice: 249,
-          isVisible: true,
+          imageUrl: 'https://images.unsplash.com/photo-1518707681017-e820adf2ca1d?w=800&q=80',
+          likes: 15,
+          likedBy: [],
           createdAt: new Date(),
           updatedAt: new Date()
         },
@@ -41,11 +48,11 @@ export async function POST() {
           name: 'Golden Celebration',
           description: 'Luxurious golden design ideal for weddings and premium celebrations',
           price: 349,
-          imageUrl: '/uploads/model-mc002.jpg',
-          likes: 0,
-          likedBy: [],
           isLateNightSpecial: false,
-          isVisible: true,
+          lateNightPrice: 349,
+          imageUrl: 'https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=800&q=80',
+          likes: 23,
+          likedBy: [],
           createdAt: new Date(),
           updatedAt: new Date()
         },
@@ -54,32 +61,65 @@ export async function POST() {
           name: 'Royal Blue Elegance',
           description: 'Sophisticated blue wrapper with elegant patterns for distinguished events',
           price: 329,
-          imageUrl: '/uploads/model-mc003.jpg',
-          likes: 0,
-          likedBy: [],
           isLateNightSpecial: true,
           lateNightPrice: 279,
-          isVisible: true,
+          imageUrl: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=800&q=80',
+          likes: 18,
+          likedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          modelNumber: 'MC004',
+          name: 'Vintage Charm',
+          description: 'Classic vintage-inspired design with timeless appeal and nostalgic elements',
+          price: 359,
+          isLateNightSpecial: false,
+          lateNightPrice: 359,
+          imageUrl: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&q=80',
+          likes: 12,
+          likedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          modelNumber: 'MC005',
+          name: 'Modern Minimalist',
+          description: 'Clean, contemporary design perfect for modern celebrations and events',
+          price: 289,
+          isLateNightSpecial: true,
+          lateNightPrice: 239,
+          imageUrl: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=800&q=80',
+          likes: 27,
+          likedBy: [],
           createdAt: new Date(),
           updatedAt: new Date()
         }
       ];
-      
+
       await db.collection('wrappers').insertMany(sampleWrappers);
+      console.log(`✅ Added ${sampleWrappers.length} sample wrappers`);
+    } else {
+      console.log(`ℹ️ Database already has ${existingWrappers} wrappers`);
     }
-    
+
+    const wrapperCount = await db.collection('wrappers').countDocuments();
+    const adminCount = await db.collection('admins').countDocuments();
+
     return NextResponse.json({
-      success: true,
-      message: 'Database seeded successfully'
+      message: 'Database seeded successfully!',
+      data: {
+        wrappers: wrapperCount,
+        admins: adminCount
+      }
     });
-    
+
   } catch (error) {
-    console.error('Seed error:', error);
+    console.error('❌ Seeding error:', error);
     return NextResponse.json(
       { 
-        success: false, 
-        message: 'Failed to seed database', 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+        error: 'Failed to seed database',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );

@@ -7,12 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "node scripts/seed.js"
+    "seed": "curl http://localhost:3000/api/seed || echo 'Run npm run dev first'",
+    "test-db": "node scripts/test-connection.js"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/multer": "^2.0.0",
     "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.1",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.536.0",
     "mongodb": "^6.18.0",

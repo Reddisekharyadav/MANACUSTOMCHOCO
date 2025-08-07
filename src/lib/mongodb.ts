@@ -1,16 +1,27 @@
-import { MongoClient, Db } from 'mongodb';
+import { MongoClient, Db, MongoClientOptions } from 'mongodb';
 
-const uri = process.env.MONGODB_URI as string;
+const uri = process.env.MONGODB_URI!;
 
 if (!uri) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+  throw new Error('Please add your MongoDB URI to .env.local');
 }
 
-const options = {
-  serverSelectionTimeoutMS: 10000, // 10 seconds
+// Optimized options for MongoDB Atlas cloud connection
+const options: MongoClientOptions = {
   maxPoolSize: 10,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
   retryWrites: true,
-  w: 'majority' as const
+  w: 'majority' as const,
+  // Enhanced options for cloud connectivity
+  connectTimeoutMS: 10000,
+  heartbeatFrequencyMS: 10000,
+  maxIdleTimeMS: 30000,
+  // SSL options to handle connection issues
+  tls: true,
+  tlsInsecure: false,
+  tlsAllowInvalidCertificates: false,
+  tlsAllowInvalidHostnames: false,
 };
 
 let client: MongoClient;
@@ -38,10 +49,15 @@ export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db
   try {
     const client = await clientPromise;
     const db = client.db('manacustomchoco');
+    
+    // Test the connection
+    await db.admin().ping();
+    console.log('✅ Connected to MongoDB Atlas successfully');
+    
     return { client, db };
   } catch (error) {
-    console.error('Failed to connect to MongoDB:', error);
-    throw new Error('Database connection failed');
+    console.error('❌ MongoDB connection error:', error);
+    throw new Error('Failed to connect to MongoDB Atlas');
   }
 }
 
