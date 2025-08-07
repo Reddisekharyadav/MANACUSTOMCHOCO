@@ -6,22 +6,40 @@ if (!uri) {
   throw new Error('Please add your MongoDB URI to .env.local');
 }
 
-// Connection options optimized for MongoDB Atlas
+// Connection options - simplified for reliability
 const options: MongoClientOptions = {
   maxPoolSize: 10,
-  serverSelectionTimeoutMS: 30000,
-  socketTimeoutMS: 0,
-  connectTimeoutMS: 30000,
+  serverSelectionTimeoutMS: 5000,
+  connectTimeoutMS: 10000,
   retryWrites: true,
   w: 'majority' as const,
-  // SSL configuration for Atlas
-  tls: true,
-  tlsAllowInvalidCertificates: false,
-  tlsAllowInvalidHostnames: false,
+  // Only use TLS for Atlas connections
+  ...(uri.includes('mongodb+srv') ? {
+    tls: true,
+    tlsAllowInvalidCertificates: false,
+  } : {})
 };
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
+
+// Use mock data in production if MongoDB connection fails
+const USE_MOCK_IN_PRODUCTION = process.env.NODE_ENV === 'production';
+
+if (process.env.NODE_ENV === 'development') {
+  const globalWithMongo = global as typeof globalThis & {
+    _mongoClientPromise?: Promise<MongoClient>;
+  };
+
+  if (!globalWithMongo._mongoClientPromise) {
+    client = new MongoClient(uri, options);
+    globalWithMongo._mongoClientPromise = client.connect();
+  }
+  clientPromise = globalWithMongo._mongoClientPromise;
+} else {
+  client = new MongoClient(uri, options);
+  clientPromise = client.connect();
+}
 
 if (process.env.NODE_ENV === 'development') {
   // In development mode, use a global variable so that the value
