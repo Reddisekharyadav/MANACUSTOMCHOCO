@@ -60,6 +60,15 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db }> {
+  // In production, use static database for reliability
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🔄 Using static database for production');
+    const { createStaticDatabase } = await import('./staticDatabase');
+    const { client, db } = createStaticDatabase();
+    return { client: client as MongoClient, db: db as Db };
+  }
+  
+  // In development, try MongoDB first, then fallback to static
   try {
     const client = await clientPromise;
     const db = client.db('manacustomchoco');
@@ -71,16 +80,11 @@ export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db
     return { client, db };
   } catch (error) {
     console.error('❌ MongoDB connection error:', error);
+    console.log('🔄 Falling back to static database');
     
-    // In production, use mock database as fallback
-    if (process.env.NODE_ENV === 'production') {
-      console.log('🔄 Using production mock database as fallback');
-      const { createProductionDatabase } = await import('./mockDatabase');
-      const { client, db } = createProductionDatabase();
-      return { client: client as MongoClient, db: db as Db };
-    }
-    
-    throw new Error(`Failed to connect to MongoDB: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    const { createStaticDatabase } = await import('./staticDatabase');
+    const { client, db } = createStaticDatabase();
+    return { client: client as MongoClient, db: db as Db };
   }
 }
 

@@ -22,6 +22,8 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       }
     ],
+    // Disable optimization for local images to prevent 400 errors
+    unoptimized: process.env.NODE_ENV === 'production',
   },
 };
 
