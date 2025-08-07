@@ -47,13 +47,22 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">
-            <div className="relative w-10 h-10">
-              <Image
-                src="/uploads/logo.jpg"
-                alt="ManaCustom Choco Logo"
-                fill
-                className="object-cover rounded-full"
-                sizes="40px"
+            <div className="relative w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 flex items-center justify-center">
+              <Image 
+                src="/uploads/logo.jpg" 
+                alt="ManaCustom Choco Logo" 
+                width={40} 
+                height={40}
+                className="object-cover w-full h-full"
+                onError={(e) => {
+                  // Fallback to text logo if image fails
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.innerHTML = '<span class="text-white font-bold text-xs">🍫</span>';
+                  }
+                }}
               />
             </div>
             <div className="hidden sm:block">

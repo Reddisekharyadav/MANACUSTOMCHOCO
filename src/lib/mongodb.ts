@@ -6,14 +6,18 @@ if (!uri) {
   throw new Error('Please add your MongoDB URI to .env.local');
 }
 
-// Simplified connection options for MongoDB Atlas
+// Connection options optimized for MongoDB Atlas
 const options: MongoClientOptions = {
   maxPoolSize: 10,
-  serverSelectionTimeoutMS: 10000,
-  socketTimeoutMS: 45000,
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 0,
+  connectTimeoutMS: 30000,
   retryWrites: true,
   w: 'majority' as const,
-  connectTimeoutMS: 15000,
+  // SSL configuration for Atlas
+  tls: true,
+  tlsAllowInvalidCertificates: false,
+  tlsAllowInvalidHostnames: false,
 };
 
 let client: MongoClient;

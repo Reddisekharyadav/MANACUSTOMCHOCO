@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Sparkles, Clock, Star, Mail, Phone, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Hero() {
   const scrollToGallery = () => {
@@ -134,11 +135,28 @@ export default function Hero() {
             transition={{ type: "spring", stiffness: 300 }}
           >
             <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 flex items-center justify-center">
-              <div className="text-white font-bold text-2xl md:text-3xl text-center">
-                <div>MANA</div>
-                <div className="text-lg md:text-xl">🍫</div>
-                <div className="text-sm md:text-base">CHOCO</div>
-              </div>
+              <Image 
+                src="/uploads/logo.jpg" 
+                alt="ManaCustom Choco Logo" 
+                width={176} 
+                height={176}
+                className="object-cover w-full h-full rounded-full"
+                onError={(e) => {
+                  // Fallback to text logo if image fails
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.innerHTML = `
+                      <div class="text-white font-bold text-2xl md:text-3xl text-center">
+                        <div>MANA</div>
+                        <div class="text-lg md:text-xl">🍫</div>
+                        <div class="text-sm md:text-base">CHOCO</div>
+                      </div>
+                    `;
+                  }
+                }}
+              />
               <motion.div 
                 className="absolute inset-0 bg-gradient-to-br from-amber-400/20 via-orange-500/20 to-red-500/20 rounded-full"
                 animate={{
