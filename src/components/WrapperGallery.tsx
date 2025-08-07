@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Grid3x3, List } from 'lucide-react';
+import { Search, Filter, Grid3x3, List, RefreshCw } from 'lucide-react';
 import WrapperCard from './WrapperCard';
 import Lightbox from './Lightbox';
 import { Wrapper } from '@/types';
@@ -20,6 +20,10 @@ export default function WrapperGallery() {
 
   useEffect(() => {
     fetchWrappers();
+    
+    // Set up auto-refresh every 30 seconds to catch new wrappers
+    const interval = setInterval(fetchWrappers, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -178,9 +182,20 @@ export default function WrapperGallery() {
               />
             </div>
 
-            {/* View Mode Toggle - Centered on mobile */}
+            {/* View Mode Toggle & Refresh - Centered on mobile */}
             <div className="flex items-center justify-center sm:justify-end">
               <div className="flex items-center space-x-1 sm:space-x-2 bg-white rounded-lg p-1 shadow-md">
+                <button
+                  onClick={() => {
+                    setIsLoading(true);
+                    fetchWrappers();
+                    toast.success('Gallery refreshed!');
+                  }}
+                  title="Refresh gallery"
+                  className="p-2 sm:p-2.5 rounded-md transition-all duration-200 bg-transparent text-gray-600 hover:bg-gray-100 hover:text-amber-600"
+                >
+                  <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
                 <button
                   onClick={() => setViewMode('grid')}
                   title="Grid view"
