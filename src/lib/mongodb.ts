@@ -6,52 +6,15 @@ if (!uri) {
   throw new Error('Please add your MongoDB URI to .env.local');
 }
 
-// Different options for development vs production
-const getConnectionOptions = (): MongoClientOptions => {
-  const baseOptions: MongoClientOptions = {
-    maxPoolSize: 10,
-    serverSelectionTimeoutMS: 8000,
-    socketTimeoutMS: 45000,
-    retryWrites: true,
-    w: 'majority' as const,
-    connectTimeoutMS: 15000,
-    heartbeatFrequencyMS: 10000,
-    maxIdleTimeMS: 30000,
-  };
-
-  // For local development, try multiple approaches
-  if (process.env.NODE_ENV === 'development') {
-    // If we're forcing Atlas connection, try different SSL approaches
-    if (process.env.FORCE_ATLAS_CONNECTION === 'true') {
-      return {
-        ...baseOptions,
-        // Try with basic SSL approach
-        ssl: true,
-        serverSelectionTimeoutMS: 3000,
-      };
-    }
-    
-    return {
-      ...baseOptions,
-      // Use only one SSL workaround option at a time
-      tls: true,
-      tlsAllowInvalidCertificates: true,
-      tlsAllowInvalidHostnames: true,
-      serverSelectionTimeoutMS: 3000, // Shorter timeout for faster failure
-    };
-  }
-
-  // Production settings - strict SSL
-  return {
-    ...baseOptions,
-    tls: true,
-    tlsInsecure: false,
-    tlsAllowInvalidCertificates: false,
-    tlsAllowInvalidHostnames: false,
-  };
+// Simplified connection options for MongoDB Atlas
+const options: MongoClientOptions = {
+  maxPoolSize: 10,
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 45000,
+  retryWrites: true,
+  w: 'majority' as const,
+  connectTimeoutMS: 15000,
 };
-
-const options = getConnectionOptions();
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
@@ -87,20 +50,7 @@ export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db
   } catch (error) {
     console.error('❌ MongoDB connection error:', error);
     
-    // In development, provide helpful fallback suggestions
-    if (process.env.NODE_ENV === 'development') {
-      console.log('💡 Development Fallback Options:');
-      console.log('1. Check if MongoDB Atlas IP whitelist includes 0.0.0.0/0');
-      console.log('2. Try using local MongoDB: mongodb://localhost:27017/manacustomchoco');
-      console.log('3. Use production deployment at https://manacustomchoco.vercel.app');
-      
-      // Return mock data for development if needed
-      if (process.env.USE_MOCK_DATA === 'true') {
-        console.log('🔄 Using mock data for development...');
-        return createMockDatabase() as { client: MongoClient; db: Db };
-      }
-    }
-    
+    // For now, always try to connect - no fallback
     throw new Error('Failed to connect to MongoDB Atlas');
   }
 }
