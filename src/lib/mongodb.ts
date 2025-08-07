@@ -10,22 +10,31 @@ if (!uri) {
 const getConnectionOptions = (): MongoClientOptions => {
   const baseOptions: MongoClientOptions = {
     maxPoolSize: 10,
-    serverSelectionTimeoutMS: 5000,
+    serverSelectionTimeoutMS: 8000,
     socketTimeoutMS: 45000,
     retryWrites: true,
     w: 'majority' as const,
-    connectTimeoutMS: 10000,
+    connectTimeoutMS: 15000,
     heartbeatFrequencyMS: 10000,
     maxIdleTimeMS: 30000,
   };
 
-  // For local development, try to work around SSL issues
+  // For local development, try multiple approaches
   if (process.env.NODE_ENV === 'development') {
+    // If we're forcing Atlas connection, try different SSL approaches
+    if (process.env.FORCE_ATLAS_CONNECTION === 'true') {
+      return {
+        ...baseOptions,
+        // Try with basic SSL approach
+        ssl: true,
+        serverSelectionTimeoutMS: 3000,
+      };
+    }
+    
     return {
       ...baseOptions,
-      // Disable strict SSL for development only
+      // Use only one SSL workaround option at a time
       tls: true,
-      tlsInsecure: true, // Allow self-signed certificates in dev
       tlsAllowInvalidCertificates: true,
       tlsAllowInvalidHostnames: true,
       serverSelectionTimeoutMS: 3000, // Shorter timeout for faster failure
@@ -88,7 +97,7 @@ export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db
       // Return mock data for development if needed
       if (process.env.USE_MOCK_DATA === 'true') {
         console.log('🔄 Using mock data for development...');
-        return createMockDatabase();
+        return createMockDatabase() as { client: MongoClient; db: Db };
       }
     }
     
@@ -97,14 +106,14 @@ export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db
 }
 
 // Mock database for development fallback
-function createMockDatabase(): { client: any; db: any } {
+function createMockDatabase(): { client: unknown; db: unknown } {
   const mockData = {
     wrappers: [
       {
         _id: '507f1f77bcf86cd799439011',
         modelNumber: 'MC001',
         name: 'Elegant Rose Garden',
-        description: 'Beautiful rose-themed wrapper perfect for romantic occasions',
+        description: 'Beautiful rose-themed wrapper perfect for romantic occasions and celebrations',
         price: 299,
         isLateNightSpecial: true,
         lateNightPrice: 249,
@@ -113,11 +122,39 @@ function createMockDatabase(): { client: any; db: any } {
         likedBy: [],
         createdAt: new Date(),
         updatedAt: new Date()
+      },
+      {
+        _id: '507f1f77bcf86cd799439012',
+        modelNumber: 'MC002',
+        name: 'Golden Celebration',
+        description: 'Luxurious golden design ideal for weddings and premium celebrations',
+        price: 349,
+        isLateNightSpecial: false,
+        lateNightPrice: 349,
+        imageUrl: 'https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=800&q=80',
+        likes: 23,
+        likedBy: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        _id: '507f1f77bcf86cd799439013',
+        modelNumber: 'MC003',
+        name: 'Royal Blue Elegance',
+        description: 'Sophisticated blue wrapper with elegant patterns for distinguished events',
+        price: 329,
+        isLateNightSpecial: true,
+        lateNightPrice: 279,
+        imageUrl: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=800&q=80',
+        likes: 18,
+        likedBy: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
     ],
     admins: [
       {
-        _id: '507f1f77bcf86cd799439012',
+        _id: '507f1f77bcf86cd799439014',
         username: 'admin',
         password: '$2b$12$8mK8W8BVRMdQY8W8BVRMdQaKsGKqxT7T7T7T7T7T7T7T7T7T7T7T7T7',
         createdAt: new Date()
@@ -125,27 +162,29 @@ function createMockDatabase(): { client: any; db: any } {
     ]
   };
 
-  const mockDb = {
-    collection: (name: string) => ({
-      find: () => ({
-        sort: () => ({
-          toArray: async () => mockData[name as keyof typeof mockData] || []
-        }),
+  const mockCollection = (name: string) => ({
+    find: () => ({
+      sort: () => ({
         toArray: async () => mockData[name as keyof typeof mockData] || []
       }),
-      findOne: async () => mockData[name as keyof typeof mockData]?.[0] || null,
-      insertOne: async (doc: any) => ({ insertedId: '507f1f77bcf86cd799439013' }),
-      insertMany: async (docs: any[]) => ({ insertedIds: docs.map((_, i) => `507f1f77bcf86cd799439${14 + i}`) }),
-      updateOne: async () => ({ matchedCount: 1, modifiedCount: 1 }),
-      deleteOne: async () => ({ deletedCount: 1 }),
-      countDocuments: async () => mockData[name as keyof typeof mockData]?.length || 0
+      toArray: async () => mockData[name as keyof typeof mockData] || []
     }),
+    findOne: async () => mockData[name as keyof typeof mockData]?.[0] || null,
+    insertOne: async (_doc: unknown) => ({ insertedId: '507f1f77bcf86cd799439015' }),
+    insertMany: async (docs: unknown[]) => ({ insertedIds: docs.map((_, i) => `507f1f77bcf86cd799439${16 + i}`) }),
+    updateOne: async () => ({ matchedCount: 1, modifiedCount: 1 }),
+    deleteOne: async () => ({ deletedCount: 1 }),
+    countDocuments: async () => mockData[name as keyof typeof mockData]?.length || 0
+  });
+
+  const mockDb = {
+    collection: mockCollection,
     admin: () => ({
       ping: async () => true
     })
   };
 
-  return { client: null, db: mockDb as any };
+  return { client: null, db: mockDb };
 }
 
 export default clientPromise;

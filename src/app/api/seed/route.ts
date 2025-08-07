@@ -28,7 +28,7 @@ export async function GET() {
     const existingWrappers = await db.collection('wrappers').countDocuments();
     
     if (existingWrappers === 0) {
-      // Add sample wrappers
+      // Add sample wrappers with local images
       const sampleWrappers = [
         {
           modelNumber: 'MC001',
@@ -37,7 +37,7 @@ export async function GET() {
           price: 299,
           isLateNightSpecial: true,
           lateNightPrice: 249,
-          imageUrl: 'https://images.unsplash.com/photo-1518707681017-e820adf2ca1d?w=800&q=80',
+          imageUrl: '/uploads/model-mc001.jpg',
           likes: 15,
           likedBy: [],
           createdAt: new Date(),
@@ -50,7 +50,7 @@ export async function GET() {
           price: 349,
           isLateNightSpecial: false,
           lateNightPrice: 349,
-          imageUrl: 'https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=800&q=80',
+          imageUrl: '/uploads/model-mc002.jpg',
           likes: 23,
           likedBy: [],
           createdAt: new Date(),
@@ -63,7 +63,7 @@ export async function GET() {
           price: 329,
           isLateNightSpecial: true,
           lateNightPrice: 279,
-          imageUrl: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=800&q=80',
+          imageUrl: '/uploads/model-mc003.jpg',
           likes: 18,
           likedBy: [],
           createdAt: new Date(),
@@ -76,7 +76,7 @@ export async function GET() {
           price: 359,
           isLateNightSpecial: false,
           lateNightPrice: 359,
-          imageUrl: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&q=80',
+          imageUrl: '/uploads/model-mc004.jpg',
           likes: 12,
           likedBy: [],
           createdAt: new Date(),
@@ -89,7 +89,7 @@ export async function GET() {
           price: 289,
           isLateNightSpecial: true,
           lateNightPrice: 239,
-          imageUrl: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=800&q=80',
+          imageUrl: '/uploads/model-mc005.jpg',
           likes: 27,
           likedBy: [],
           createdAt: new Date(),
